@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test \"tests/unit/*.test.js\"",
+    "test": "node --test \"tests/unit/*.test.js\" && python3 -m unittest discover -s tests/server",
     "test:e2e": "node --test \"tests/e2e/*.test.js\"",
-    "serve": "python3 -m http.server 8100 --bind 127.0.0.1"
+    "dev": "PORTFOLIO_SECURE_COOKIE=0 PORTFOLIO_SERVE_SITE=1 PORTFOLIO_PASSWORD_FILE=.dev/password python3 -m server.app"
   }
 }

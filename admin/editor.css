@@ -1,15 +1,103 @@
 /* Editor-only styles. Everything is prefixed "editor-" so it can't clash with style.css. */
 
-.editor-banner {
+/* Sticky bar: publish status and the actions that affect the live site. */
+.editor-bar {
     position: sticky;
     top: 0;
     z-index: 10;
-    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 20px;
     padding: 10px 16px;
-    background-color: #fff4c2;
+    background-color: #fff;
     border-bottom: 1px solid #111;
-    text-align: center;
+}
+
+.editor-bar-status {
+    margin: 0;
     font-size: 0.9rem;
+}
+
+.editor-bar-pending {
+    background-color: #fff4c2;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.editor-bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.editor-bar-actions form {
+    margin: 0;
+}
+
+a.editor-button {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.editor-badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px dashed #999;
+    align-self: center;
+}
+
+.editor-badge-live {
+    border: 1px solid #1d6b32;
+    color: #1d6b32;
+}
+
+.editor-badge-changed,
+.editor-badge-hiding {
+    background-color: #fff4c2;
+    border-color: #111;
+}
+
+.editor-draft-hidden .project {
+    opacity: 0.45;
+}
+
+.editor-resume {
+    margin-top: 80px;
+}
+
+.editor-resume h2 {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-weight: normal;
+    letter-spacing: 2px;
+    font-size: 1.6rem;
+    margin: 0 0 10px;
+}
+
+.editor-resume .editor-form {
+    margin-top: 10px;
+}
+
+.editor-login {
+    width: min(360px, 100% - 32px);
+    margin: 12vh auto 0;
+}
+
+.editor-login .hello {
+    margin-left: 0;
+}
+
+.editor-login .editor-heading {
+    margin-bottom: 10px;
+}
+
+.editor-back {
+    align-self: center;
+    font-size: 0.85rem;
+    color: #555;
 }
 
 .editor-page {
@@ -59,6 +147,7 @@
 }
 
 .editor-form input[type="text"],
+.editor-form input[type="password"],
 .editor-form input[type="url"],
 .editor-form textarea {
     font: inherit;
@@ -183,6 +272,7 @@
 
 .editor-draft-toolbar {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin: 0 0 30px 40px;
 }

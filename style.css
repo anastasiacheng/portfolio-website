@@ -250,3 +250,26 @@ body {
     font-size: 0.9rem;
     color: #555;
 }
+
+
+
+
+.coming-soon {
+    font-family: "Reenie Beanie", cursive;
+    font-size: 2rem;
+    margin: 0 0 100px;
+}
+
+/* Deliberately faint: there for the site owner, not visitors */
+.admin-link {
+    display: block;
+    width: max-content;
+    margin: 60px auto 0;
+    font-size: 0.65rem;
+    color: #ccc;
+    text-decoration: none;
+}
+
+.admin-link:hover {
+    color: #888;
+}

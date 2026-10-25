@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Reenie+Beanie&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/static/site.css">
+    <link rel="stylesheet" href="/admin/static/editor.css">
+</head>
+
+<body>
+    <main class="editor-login">
+        <p class="hello">Welcome back!</p>
+        <h1 class="editor-heading">Admin</h1>
+
+        <form class="editor-form" method="post" action="/admin/login">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+            <p class="editor-error" role="alert"><!-- error --></p>
+
+            <div class="editor-actions">
+                <button type="submit" class="editor-button editor-button-primary">Sign in</button>
+                <a class="editor-back" href="/">Back to site</a>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

@@ -19,12 +19,12 @@ test("safeUrl rejects script, data, relative, and malformed links", () => {
     }
 });
 
-test("normalizeProject cleans values and drops unusable URLs", () => {
+test("normalizeProject cleans values and matches the server's field order", () => {
     const project = normalizeProject({
         title: "  Flexle ",
         description: " A word game. ",
         tags: "JS, js, CSS",
-        imageSrc: "",
+        imageFile: "",
         docsUrl: "javascript:alert(1)",
         siteUrl: "https://example.com",
     }, "draft-1");
@@ -36,12 +36,15 @@ test("normalizeProject cleans values and drops unusable URLs", () => {
         image: null,
         docsUrl: "",
         siteUrl: "https://example.com/",
+        hidden: false,
     });
+    // server/validation.py returns keys in this order; publish status compares them.
+    assert.deepEqual(Object.keys(project), ["id", "title", "description", "tags", "image", "docsUrl", "siteUrl", "hidden"]);
 });
 
-test("normalizeProject keeps an image with its alt text", () => {
-    const project = normalizeProject({ title: "A", description: "B", imageSrc: "blob:abc", imageAlt: " Screenshot " }, "x");
-    assert.deepEqual(project.image, { src: "blob:abc", alt: "Screenshot" });
+test("normalizeProject keeps an uploaded image with its alt text", () => {
+    const project = normalizeProject({ title: "A", description: "B", imageFile: "abc.webp", imageAlt: " Screenshot " }, "x");
+    assert.deepEqual(project.image, { file: "abc.webp", alt: "Screenshot" });
 });
 
 test("validateProject requires title and description", () => {
@@ -49,12 +52,19 @@ test("validateProject requires title and description", () => {
     assert.deepEqual(validateProject({ title: "A", description: "B" }), {});
 });
 
+test("validateProject enforces the same length limits as the server", () => {
+    assert.ok(validateProject({ title: "x".repeat(81), description: "B" }).title);
+    assert.ok(validateProject({ title: "A", description: "x".repeat(401) }).description);
+    assert.ok(validateProject({ title: "A", description: "B", tags: Array.from({ length: 11 }, (_, i) => `t${i}`).join(",") }).tags);
+    assert.ok(validateProject({ title: "A", description: "B", tags: "x".repeat(31) }).tags);
+});
+
 test("validateProject reports typo'd links instead of silently dropping them", () => {
-    const errors = validateProject({ title: "A", description: "B", docsUrl: "github.com/me", siteUrl: "javascript:x", imageUrl: "pic.png" });
-    assert.deepEqual(Object.keys(errors).sort(), ["docsUrl", "imageUrl", "siteUrl"]);
+    const errors = validateProject({ title: "A", description: "B", docsUrl: "github.com/me", siteUrl: "javascript:x" });
+    assert.deepEqual(Object.keys(errors).sort(), ["docsUrl", "siteUrl"]);
 });
 
 test("validateProject requires alt text when there is an image", () => {
-    assert.ok(validateProject({ title: "A", description: "B", imageSrc: "blob:x" }).imageAlt);
-    assert.deepEqual(validateProject({ title: "A", description: "B", imageSrc: "blob:x", imageAlt: "Shot" }), {});
+    assert.ok(validateProject({ title: "A", description: "B", imageFile: "a.webp" }).imageAlt);
+    assert.deepEqual(validateProject({ title: "A", description: "B", imageFile: "a.webp", imageAlt: "Shot" }), {});
 });

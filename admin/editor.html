@@ -12,18 +12,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Reenie+Beanie&display=swap" rel="stylesheet">
 
     <!-- The real site stylesheet, so previews look exactly like the live page -->
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="editor.css">
-    <script type="module" src="editor.js"></script>
+    <link rel="stylesheet" href="/admin/static/site.css">
+    <link rel="stylesheet" href="/admin/static/editor.css">
+    <script type="module" src="/admin/static/editor.js"></script>
 </head>
 
 <body>
-    <p class="editor-banner" role="status">
-        Preview only: nothing here is saved or published. Reloading the page clears everything.
-    </p>
+    <header class="editor-bar">
+        <p id="publish-status" class="editor-bar-status" role="status">Loading…</p>
+        <div class="editor-bar-actions">
+            <a class="editor-button" href="/" target="_blank" rel="noopener">View site</a>
+            <button type="button" id="restore-button" class="editor-button" hidden>Restore previous version</button>
+            <button type="button" id="publish-button" class="editor-button editor-button-primary" disabled>Publish</button>
+            <form method="post" action="/admin/logout">
+                <button type="submit" class="editor-button">Log out</button>
+            </form>
+        </div>
+    </header>
 
     <main class="editor-page">
         <h1 class="editor-heading">Project Editor</h1>
+        <p class="editor-hint">Changes save automatically as drafts. Visitors only see them after you press Publish.</p>
+        <p id="save-status" class="editor-hint" role="status"></p>
 
         <div class="editor-workspace">
             <form id="project-form" class="editor-form" novalidate>
@@ -41,15 +51,12 @@
                 <label for="tags">Technology tags</label>
                 <input id="tags" name="tags" type="text" placeholder="Python, Machine Learning, Unity">
                 <p class="editor-hint">Separate tags with commas.</p>
+                <p class="editor-error" data-error-for="tags"></p>
 
                 <fieldset>
                     <legend>Image</legend>
-                    <label for="imageFile">Upload a file</label>
-                    <input id="imageFile" name="imageFile" type="file" accept="image/*">
-
-                    <label for="imageUrl">or paste an image link</label>
-                    <input id="imageUrl" name="imageUrl" type="url" placeholder="https://…">
-                    <p class="editor-error" data-error-for="imageUrl"></p>
+                    <label for="imageUpload">Upload a PNG, JPEG, WebP, or GIF</label>
+                    <input id="imageUpload" name="imageUpload" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
 
                     <label for="imageAlt">Image description (alt text)</label>
                     <input id="imageAlt" name="imageAlt" type="text" maxlength="150">
@@ -60,11 +67,11 @@
                 </fieldset>
 
                 <label for="docsUrl">Documentation link (optional)</label>
-                <input id="docsUrl" name="docsUrl" type="url" placeholder="https://…">
+                <input id="docsUrl" name="docsUrl" type="url" maxlength="500" placeholder="https://…">
                 <p class="editor-error" data-error-for="docsUrl"></p>
 
                 <label for="siteUrl">Website link (optional)</label>
-                <input id="siteUrl" name="siteUrl" type="url" placeholder="https://…">
+                <input id="siteUrl" name="siteUrl" type="url" maxlength="500" placeholder="https://…">
                 <p class="editor-error" data-error-for="siteUrl"></p>
 
                 <div class="editor-actions">
@@ -80,13 +87,29 @@
         </div>
 
         <section class="editor-drafts" aria-labelledby="drafts-heading">
-            <h2 id="drafts-heading">Draft projects section</h2>
-            <p class="editor-hint">How the Featured Projects section would look with your drafts.</p>
+            <h2 id="drafts-heading">Your projects</h2>
+            <p class="editor-hint">Shown in the order they'll appear on the home page. Hidden projects stay here but aren't published.</p>
             <div class="projects editor-card-host">
                 <h2>Featured Projects</h2>
                 <div id="draft-list"></div>
-                <p id="drafts-empty" class="editor-hint">No drafts yet. Fill in the form and choose “Add to drafts”.</p>
+                <p id="drafts-empty" class="editor-hint">No projects yet. Fill in the form and choose “Add to drafts”.</p>
             </div>
+        </section>
+
+        <section class="editor-resume" aria-labelledby="resume-heading">
+            <h2 id="resume-heading">Resume</h2>
+            <p class="editor-hint">
+                Replacing the resume takes effect immediately, no Publish needed. The old file is kept as a backup.
+                <a id="resume-link" href="/assets/AnastasiaChengResume.pdf" target="_blank" rel="noopener">View current resume</a>
+            </p>
+            <form id="resume-form" class="editor-form">
+                <label for="resumeFile">New resume (PDF, under 10 MB)</label>
+                <input id="resumeFile" name="resumeFile" type="file" accept="application/pdf" required>
+                <div class="editor-actions">
+                    <button type="submit" class="editor-button editor-button-primary">Replace resume</button>
+                </div>
+                <p id="resume-status" class="editor-hint" role="status"></p>
+            </form>
         </section>
     </main>
 </body>

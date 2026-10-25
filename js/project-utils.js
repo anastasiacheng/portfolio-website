@@ -1,4 +1,7 @@
 // Pure helpers for project data. No DOM access, so they run in Node tests too.
+// server/validation.py enforces the same rules; keep LIMITS in sync with it.
+
+export const LIMITS = { title: 80, description: 400, tag: 30, tags: 10, alt: 150, url: 500 };
 
 // "Python, ML , python,, Unity" -> ["Python", "ML", "Unity"]
 export function parseTags(input) {
@@ -30,15 +33,16 @@ export function safeUrl(input) {
 
 // Raw form values -> clean project object. Unusable URLs become "".
 export function normalizeProject(values, id) {
-    const imageSrc = String(values.imageSrc ?? "").trim();
+    const imageFile = String(values.imageFile ?? "").trim();
     return {
         id,
         title: String(values.title ?? "").trim(),
         description: String(values.description ?? "").trim(),
         tags: parseTags(values.tags),
-        image: imageSrc ? { src: imageSrc, alt: String(values.imageAlt ?? "").trim() } : null,
+        image: imageFile ? { file: imageFile, alt: String(values.imageAlt ?? "").trim() } : null,
         docsUrl: safeUrl(values.docsUrl),
         siteUrl: safeUrl(values.siteUrl),
+        hidden: values.hidden === true,
     };
 }
 
@@ -46,18 +50,21 @@ export function normalizeProject(values, id) {
 // Checks the raw values so a typo'd URL is reported instead of silently dropped.
 export function validateProject(values) {
     const errors = {};
-    if (!String(values.title ?? "").trim()) errors.title = "Title is required.";
-    if (!String(values.description ?? "").trim()) errors.description = "Description is required.";
+    const text = (name) => String(values[name] ?? "").trim();
+    if (!text("title")) errors.title = "Title is required.";
+    else if (text("title").length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
+    if (!text("description")) errors.description = "Description is required.";
+    else if (text("description").length > LIMITS.description) errors.description = `Keep the description under ${LIMITS.description} characters.`;
+
+    const tags = parseTags(values.tags);
+    if (tags.length > LIMITS.tags) errors.tags = `Use at most ${LIMITS.tags} tags.`;
+    else if (tags.some((t) => t.length > LIMITS.tag)) errors.tags = `Each tag must be under ${LIMITS.tag} characters.`;
+
     for (const field of ["docsUrl", "siteUrl"]) {
-        if (String(values[field] ?? "").trim() && !safeUrl(values[field])) {
+        if (text(field) && !safeUrl(values[field])) {
             errors[field] = "Use a full link starting with http:// or https://";
         }
     }
-    if (String(values.imageUrl ?? "").trim() && !safeUrl(values.imageUrl)) {
-        errors.imageUrl = "Use a full image link starting with http:// or https://";
-    }
-    if (String(values.imageSrc ?? "").trim() && !String(values.imageAlt ?? "").trim()) {
-        errors.imageAlt = "Describe the image for screen readers.";
-    }
+    if (text("imageFile") && !text("imageAlt")) errors.imageAlt = "Describe the image for screen readers.";
     return errors;
 }
