@@ -273,3 +273,13 @@ body {
 .admin-link:hover {
     color: #888;
 }
+
+
+/* Phones: let the projects section shrink and stack each card's text above its image */
+@media (max-width: 800px) {
+    .projects { width: 100%; }
+    .project { flex-wrap: wrap; }
+    .project-text { left: 0; }
+    .project-preview { right: 0; }
+    .note { box-sizing: border-box; }
+}
