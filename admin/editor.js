@@ -12,6 +12,7 @@ let editingId = null;     // id of the project loaded into the form, or null for
 let formImage = null;     // { file } of the uploaded image in the form
 let busy = false;         // true while a request is in flight; prevents overlapping saves
 let formDirty = false;    // unsaved typing in the form
+let leaving = false;      // set when redirecting to sign in, so the page doesn't ask "leave site?"
 
 const STATUS_LABELS = {
     live: "Live",
@@ -32,7 +33,12 @@ async function api(method, path, body, contentType = "application/json") {
         body: contentType === "application/json" && body !== undefined ? JSON.stringify(body) : body,
     });
     if (response.status === 401) {
-        window.location.href = "/admin/login";
+        // Redirect once; a second request failing the same way must not start another navigation.
+        if (!leaving) {
+            backupForm();   // already backed up on every keystroke; this catches the very latest
+            leaving = true;
+            window.location.href = "/admin/login?error=expired";
+        }
         throw new ApiError("Signed out");
     }
     const data = await response.json().catch(() => ({}));
@@ -52,6 +58,7 @@ async function run(task, successMessage = "") {
         setSaveStatus(successMessage || "All changes saved.");
         return true;
     } catch (err) {
+        if (leaving) return false;   // on our way to the sign-in page
         setSaveStatus(err.message, true);
         server = await api("GET", "state").catch(() => server);   // resync after a conflict or error
         return false;
@@ -114,6 +121,7 @@ fields.imageUpload.addEventListener("change", async () => {
         const { file: name } = await api("POST", "images", file, file.type || "application/octet-stream");
         setFormImage({ file: name });
         formDirty = true;
+        backupForm();
     } catch (err) {
         $("image-status").textContent = err.message;
     } finally {
@@ -125,6 +133,7 @@ fields.imageUpload.addEventListener("change", async () => {
 
 $("remove-image").addEventListener("click", () => {
     setFormImage(null);
+    backupForm();
     renderLivePreview();
 });
 
@@ -195,6 +204,54 @@ function renderAll() {
     $("resume-link").href = `/assets/AnastasiaChengResume.pdf?v=${server.resumeVersion ?? ""}`;
 }
 
+// ---- Unsaved form backup ----
+// A copy of the form kept in this browser, so being signed out or reloading never loses typing.
+// It's only a convenience: drafts themselves are saved on the server.
+
+const BACKUP_KEY = "portfolio-editor-unsaved-form";
+
+function backupForm() {
+    try {
+        localStorage.setItem(BACKUP_KEY, JSON.stringify({ editingId, values: readForm() }));
+    } catch {
+        // Storage blocked (private window etc.): nothing to back up to.
+    }
+}
+
+function clearBackup() {
+    try {
+        localStorage.removeItem(BACKUP_KEY);
+    } catch {
+        // Same as above.
+    }
+}
+
+// Puts a backed-up form back. Returns true if there was anything to restore.
+function restoreBackup() {
+    let backup = null;
+    try {
+        backup = JSON.parse(localStorage.getItem(BACKUP_KEY));
+    } catch {
+        return false;
+    }
+    const v = backup?.values;
+    if (!v || ![v.title, v.description, v.tags, v.imageFile, v.docsUrl, v.siteUrl].some((x) => String(x ?? "").trim())) {
+        return false;
+    }
+    if (server.drafts.some((d) => d.id === backup.editingId)) loadIntoForm(backup.editingId);
+    fields.title.value = v.title ?? "";
+    fields.description.value = v.description ?? "";
+    fields.tags.value = v.tags ?? "";
+    fields.imageAlt.value = v.imageAlt ?? "";
+    fields.docsUrl.value = v.docsUrl ?? "";
+    fields.siteUrl.value = v.siteUrl ?? "";
+    setFormImage(v.imageFile ? { file: v.imageFile } : null);
+    formDirty = true;
+    backupForm();
+    renderLivePreview();
+    return true;
+}
+
 // ---- Project actions ----
 
 function loadIntoForm(id) {
@@ -213,6 +270,7 @@ function loadIntoForm(id) {
     $("submit-button").textContent = "Save changes";
     $("reset-button").textContent = "Cancel editing";
     formDirty = false;
+    clearBackup();
     showErrors({});
     renderLivePreview();
     renderDrafts();
@@ -224,6 +282,7 @@ function resetForm() {
     form.reset();
     editingId = null;
     formDirty = false;
+    clearBackup();
     setFormImage(null);
     $("form-heading").textContent = "New project";
     $("submit-button").textContent = "Add to drafts";
@@ -275,6 +334,7 @@ $("reset-button").addEventListener("click", resetForm);
 // but only shown on submit, so the form doesn't complain while you're still typing.
 form.addEventListener("input", () => {
     formDirty = true;
+    backupForm();
     renderLivePreview();
     const errors = validateProject(readForm());
     for (const p of form.querySelectorAll("[data-error-for]")) {
@@ -321,7 +381,7 @@ for (const host of document.querySelectorAll(".editor-card-host")) {
 
 // Drafts are saved on the server, so only unsaved typing in the form needs a warning.
 window.addEventListener("beforeunload", (event) => {
-    if (formDirty || busy) event.preventDefault();
+    if (!leaving && (formDirty || busy)) event.preventDefault();
 });
 
 renderLivePreview();
@@ -329,6 +389,8 @@ api("GET", "state")
     .then((state) => {
         server = state;
         renderAll();
-        setSaveStatus("");
+        setSaveStatus(restoreBackup()
+            ? "Your unsaved project is back in the form. Press the button below it to save it."
+            : "");
     })
     .catch((err) => setSaveStatus(err.message, true));

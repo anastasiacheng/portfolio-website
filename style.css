@@ -143,6 +143,9 @@ body {
     
     position: relative;
     left: 40px;
+    /* The column is shifted 40px right and the image 40px left; this keeps its contents
+       (long titles, tag rows, buttons) from running underneath the image. */
+    margin-right: 80px;
 }
 
 .project-text h3 {
@@ -279,7 +282,7 @@ body {
 @media (max-width: 800px) {
     .projects { width: 100%; }
     .project { flex-wrap: wrap; }
-    .project-text { left: 0; }
+    .project-text { left: 0; margin-right: 0; }
     .project-preview { right: 0; width: 100%; max-width: 320px; height: auto; aspect-ratio: 32 / 22; }
     .note { box-sizing: border-box; }
 

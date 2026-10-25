@@ -9,7 +9,9 @@ import unittest
 from pathlib import Path
 
 from server import images, render
-from server.app import MAX_FAILURES_PER_IP, Config, make_server
+from unittest import mock
+
+from server.app import MAX_FAILURES_PER_IP, SESSION_IDLE_SECONDS, SESSION_MAX_SECONDS, Auth, Config, make_server
 from server.portfolio import Portfolio, ResumeError
 from server.store import Conflict
 from server.validation import ValidationError, validate_drafts
@@ -175,6 +177,55 @@ class PortfolioTests(unittest.TestCase):
         self.assertEqual([f.read_bytes() for f in (self.tmp / "state/resume-history").iterdir()], [b"%PDF-1.4 old %%EOF"])
         with self.assertRaises(ResumeError):
             self.p.replace_resume(b"<html>not a pdf</html>")
+
+
+class SessionTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.config = Config({"PORTFOLIO_STATE_DIR": str(self.tmp)})
+        self.now = 1_000_000.0
+        patcher = mock.patch("server.app.time.time", lambda: self.now)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def test_sessions_survive_a_restart_and_only_hashes_are_stored(self):
+        token = Auth(self.config).new_session()
+        self.assertTrue(Auth(self.config).valid(token), "a new Auth (a restarted service) still knows the session")
+        self.assertNotIn(token, (self.tmp / "sessions.json").read_text())
+        self.assertEqual(oct((self.tmp / "sessions.json").stat().st_mode & 0o777), "0o600")
+
+    def test_at_least_eight_idle_hours(self):
+        auth = Auth(self.config)
+        token = auth.new_session()
+        self.now += SESSION_IDLE_SECONDS - 1
+        self.assertTrue(Auth(self.config).valid(token), "still signed in just under 8 idle hours, even after a restart")
+
+    def test_activity_keeps_the_session_alive(self):
+        auth = Auth(self.config)
+        token = auth.new_session()
+        for _ in range(3):
+            self.now += 7 * 3600
+            self.assertTrue(auth.valid(token))
+        self.now += SESSION_IDLE_SECONDS + 3600
+        self.assertFalse(auth.valid(token), "signed out after more than 8 idle hours")
+
+    def test_seven_day_cap(self):
+        auth = Auth(self.config)
+        token = auth.new_session()
+        while self.now < 1_000_000 + SESSION_MAX_SECONDS - 3600:
+            self.now += 3600
+            self.assertTrue(auth.valid(token))
+        self.now += 7200
+        self.assertFalse(auth.valid(token))
+
+    def test_logout_is_remembered_after_restart(self):
+        auth = Auth(self.config)
+        token = auth.new_session()
+        auth.end(token)
+        self.assertFalse(Auth(self.config).valid(token))
 
 
 class HttpTests(unittest.TestCase):

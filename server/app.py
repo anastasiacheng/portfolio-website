@@ -1,4 +1,5 @@
 """Admin backend. Caddy sends /admin* here; everything else stays a static site."""
+import hashlib
 import hmac
 import html
 import json
@@ -15,11 +16,13 @@ from urllib.parse import parse_qs, urlsplit
 
 from .images import MAX_UPLOAD, ImageError
 from .portfolio import MAX_RESUME, Portfolio, ResumeError
-from .store import Conflict
+from .store import Conflict, atomic_write
 from .validation import ValidationError
 
 ROOT = Path(__file__).resolve().parent.parent
-SESSION_SECONDS = 8 * 3600
+SESSION_IDLE_SECONDS = 8 * 3600          # signed out after 8 hours with no activity
+SESSION_MAX_SECONDS = 7 * 24 * 3600      # and always after 7 days
+SESSION_WRITE_EVERY = 5 * 60             # how often activity is saved to disk, to avoid a write per request
 FAILURE_WINDOW = 15 * 60
 MAX_FAILURES_PER_IP = 5
 MAX_FAILURES_TOTAL = 50
@@ -64,9 +67,30 @@ class Config:
 class Auth:
     def __init__(self, config):
         self.config = config
-        self.sessions = {}       # token -> expiry; a restart signs everyone out
+        # Sessions are kept on disk so a restart or deploy doesn't sign anyone out.
+        # Only a hash of each token is stored, so the file alone can't be used to sign in.
+        self.session_file = Path(config.state_dir) / "sessions.json"
+        self.sessions = {}       # sha256(token) -> {"created": t, "seen": t}
         self.failures = {}       # ip -> [failure times]
         self.lock = threading.Lock()
+        try:
+            self.sessions = json.loads(self.session_file.read_text())
+        except (OSError, ValueError):
+            pass
+
+    @staticmethod
+    def _key(token):
+        return hashlib.sha256((token or "").encode()).hexdigest()
+
+    def _alive(self, session, now):
+        # The slack covers activity not yet written to disk when the service restarts,
+        # so the idle limit is never shorter than 8 hours.
+        idle_limit = SESSION_IDLE_SECONDS + SESSION_WRITE_EVERY
+        return now - session["seen"] < idle_limit and now - session["created"] < SESSION_MAX_SECONDS
+
+    def _save(self):
+        self.session_file.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write(self.session_file, json.dumps(self.sessions), 0o600)
 
     def _recent(self, times, now):
         return [t for t in times if now - t < FAILURE_WINDOW]
@@ -94,21 +118,33 @@ class Auth:
 
     def new_session(self):
         token = secrets.token_urlsafe(32)
+        now = time.time()
         with self.lock:
-            self.sessions[token] = time.time() + SESSION_SECONDS
+            self.sessions = {k: v for k, v in self.sessions.items() if self._alive(v, now)}
+            self.sessions[self._key(token)] = {"created": now, "seen": now}
+            self._save()
         return token
 
     def valid(self, token):
+        """True if the session is live. Any activity restarts the 8-hour idle clock."""
+        key, now = self._key(token), time.time()
         with self.lock:
-            expiry = self.sessions.get(token or "")
-            if expiry and expiry > time.time():
-                return True
-            self.sessions.pop(token or "", None)
-            return False
+            session = self.sessions.get(key)
+            if not session or not self._alive(session, now):
+                if self.sessions.pop(key, None):
+                    self._save()
+                return False
+            persisted = session.get("saved", session["seen"])
+            session["seen"] = now
+            if now - persisted > SESSION_WRITE_EVERY:
+                session["saved"] = now
+                self._save()
+            return True
 
     def end(self, token):
         with self.lock:
-            self.sessions.pop(token or "", None)
+            if self.sessions.pop(self._key(token), None):
+                self._save()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -200,7 +236,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/admin/login":
             if self.signed_in():
                 return self.redirect("/admin/")
-            error = {"1": "Wrong username or password.", "locked": "Too many attempts. Try again in 15 minutes."}
+            error = {
+                "1": "Wrong username or password.",
+                "locked": "Too many attempts. Try again in 15 minutes.",
+                "expired": "You were signed out. Sign in again; your unsaved project is still in the form.",
+            }
             message = error.get(query.get("error", [""])[0], "")
             return self.page("login.html", {"<!-- error -->": html.escape(message)})
         if path.startswith("/admin/static/") and path[len("/admin/static/"):] in STATIC:
@@ -258,7 +298,7 @@ class Handler(BaseHTTPRequestHandler):
             self.log_message("failed login from %s", ip)
             return self.redirect("/admin/login?error=1")
         token = self.app.auth.new_session()
-        self.redirect("/admin/", {"Set-Cookie": self.cookie(token, SESSION_SECONDS)})
+        self.redirect("/admin/", {"Set-Cookie": self.cookie(token, SESSION_MAX_SECONDS)})
 
     def api(self, method, path):
         if not self.signed_in():

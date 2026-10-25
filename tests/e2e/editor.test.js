@@ -271,6 +271,57 @@ test("the home page fits common phone widths with nothing cut off on either side
     }
 });
 
+test("long rows of tags wrap instead of running under the image", async () => {
+    await page.fill("#title", "Many tags");
+    await page.fill("#description", "Checks that tags wrap.");
+    await page.fill("#tags", "HTML, CSS, JavaScript, AWS EC2, Caddy, Git/GitHub, Claude Code CLI");
+    await page.click("#submit-button");
+    await waitForSave();
+    await confirmNext();
+    await page.click("#publish-button");
+    await waitForSave();
+
+    for (const width of [1280, 900]) {
+        const desk = await browser.newPage({ viewport: { width, height: 900 } });
+        await desk.goto(`${base}/`, { waitUntil: "networkidle" });
+        const overlaps = await desk.evaluate(() => [...document.querySelectorAll(".project")].flatMap((card) => {
+            const img = card.querySelector(".project-preview").getBoundingClientRect();
+            return [...card.querySelectorAll(".project-text *")].filter((el) => {
+                const r = el.getBoundingClientRect();
+                return r.width && r.right > img.left && r.left < img.right && r.bottom > img.top && r.top < img.bottom;
+            }).map((el) => el.textContent.trim());
+        }));
+        await desk.close();
+        assert.deepEqual(overlaps, [], `at ${width}px`);
+    }
+});
+
+test("being signed out mid-edit keeps what you typed", async () => {
+    await page.fill("#title", "Typed before sign-out");
+    await page.fill("#description", "This must survive.");
+    await page.fill("#tags", "Kept");
+    await page.context().clearCookies();   // same effect as the session ending
+    await page.click("#submit-button");
+    await page.waitForURL(/\/admin\/login\?error=expired$/);
+    assert.match(await page.textContent(".editor-error"), /unsaved project is still in the form/);
+
+    await page.fill("#username", "abc");
+    await page.fill("#password", PASSWORD);
+    await page.click("button[type=submit]");
+    await page.waitForSelector("#draft-list .project");
+    assert.equal(await page.inputValue("#title"), "Typed before sign-out");
+    assert.equal(await page.inputValue("#description"), "This must survive.");
+    assert.equal(await page.inputValue("#tags"), "Kept");
+    assert.match(await page.textContent("#save-status"), /unsaved project is back/);
+
+    await page.click("#submit-button");
+    await waitForSave();
+    assert.ok((await page.locator("#draft-list h3").allTextContents()).includes("Typed before sign-out"));
+    await page.reload();
+    await page.waitForSelector("#draft-list .project");
+    assert.equal(await page.inputValue("#title"), "", "nothing left to restore once saved");
+});
+
 test("logging out ends the session", async () => {
     await page.click("text=Log out");
     assert.match(page.url(), /\/admin\/login$/);
@@ -278,7 +329,7 @@ test("logging out ends the session", async () => {
 });
 
 test("no errors or content-security-policy violations were logged", () => {
-    // The intentional 400 from the bad upload above shows up as a failed-resource console error.
-    const unexpected = consoleErrors.filter((e) => !/fonts\.(googleapis|gstatic)/.test(e) && !/status of 400/.test(e));
+    // Expected: the 400 from the deliberate bad upload, and 401s from the deliberate sign-out test.
+    const unexpected = consoleErrors.filter((e) => !/fonts\.(googleapis|gstatic)/.test(e) && !/status of 40[01]/.test(e));
     assert.deepEqual(unexpected, []);
 });
