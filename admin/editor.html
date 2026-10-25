@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Project Editor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Reenie+Beanie&display=swap" rel="stylesheet">
+
+    <!-- The real site stylesheet, so previews look exactly like the live page -->
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="editor.css">
+    <script type="module" src="editor.js"></script>
+</head>
+
+<body>
+    <p class="editor-banner" role="status">
+        Preview only: nothing here is saved or published. Reloading the page clears everything.
+    </p>
+
+    <main class="editor-page">
+        <h1 class="editor-heading">Project Editor</h1>
+
+        <div class="editor-workspace">
+            <form id="project-form" class="editor-form" novalidate>
+                <h2 id="form-heading">New project</h2>
+
+                <label for="title">Title</label>
+                <input id="title" name="title" type="text" maxlength="80" required>
+                <p class="editor-error" data-error-for="title"></p>
+
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4" maxlength="400" required></textarea>
+                <p class="editor-hint">One to three sentences works best.</p>
+                <p class="editor-error" data-error-for="description"></p>
+
+                <label for="tags">Technology tags</label>
+                <input id="tags" name="tags" type="text" placeholder="Python, Machine Learning, Unity">
+                <p class="editor-hint">Separate tags with commas.</p>
+
+                <fieldset>
+                    <legend>Image</legend>
+                    <label for="imageFile">Upload a file</label>
+                    <input id="imageFile" name="imageFile" type="file" accept="image/*">
+
+                    <label for="imageUrl">or paste an image link</label>
+                    <input id="imageUrl" name="imageUrl" type="url" placeholder="https://…">
+                    <p class="editor-error" data-error-for="imageUrl"></p>
+
+                    <label for="imageAlt">Image description (alt text)</label>
+                    <input id="imageAlt" name="imageAlt" type="text" maxlength="150">
+                    <p class="editor-error" data-error-for="imageAlt"></p>
+
+                    <p class="editor-hint" id="image-status">No image.</p>
+                    <button type="button" id="remove-image" class="editor-button" hidden>Remove image</button>
+                </fieldset>
+
+                <label for="docsUrl">Documentation link (optional)</label>
+                <input id="docsUrl" name="docsUrl" type="url" placeholder="https://…">
+                <p class="editor-error" data-error-for="docsUrl"></p>
+
+                <label for="siteUrl">Website link (optional)</label>
+                <input id="siteUrl" name="siteUrl" type="url" placeholder="https://…">
+                <p class="editor-error" data-error-for="siteUrl"></p>
+
+                <div class="editor-actions">
+                    <button type="submit" id="submit-button" class="editor-button editor-button-primary">Add to drafts</button>
+                    <button type="button" id="reset-button" class="editor-button">Clear form</button>
+                </div>
+            </form>
+
+            <section class="editor-preview" aria-labelledby="preview-heading">
+                <h2 id="preview-heading">Live preview</h2>
+                <div id="live-preview" class="projects editor-card-host"></div>
+            </section>
+        </div>
+
+        <section class="editor-drafts" aria-labelledby="drafts-heading">
+            <h2 id="drafts-heading">Draft projects section</h2>
+            <p class="editor-hint">How the Featured Projects section would look with your drafts.</p>
+            <div class="projects editor-card-host">
+                <h2>Featured Projects</h2>
+                <div id="draft-list"></div>
+                <p id="drafts-empty" class="editor-hint">No drafts yet. Fill in the form and choose “Add to drafts”.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

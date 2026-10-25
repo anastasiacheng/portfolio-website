@@ -1,0 +1,188 @@
+/* Editor-only styles. Everything is prefixed "editor-" so it can't clash with style.css. */
+
+.editor-banner {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0;
+    padding: 10px 16px;
+    background-color: #fff4c2;
+    border-bottom: 1px solid #111;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.editor-page {
+    width: min(1240px, 100% - 32px);
+    margin: 0 auto;
+    padding: 30px 0 100px;
+}
+
+.editor-heading,
+.editor-form h2,
+.editor-preview h2,
+.editor-drafts > h2 {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-weight: normal;
+    letter-spacing: 2px;
+}
+
+.editor-heading {
+    font-size: 2.5rem;
+    margin: 0 0 30px;
+}
+
+/* Form and live preview side by side when there's room, stacked otherwise. */
+.editor-workspace {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.editor-form {
+    flex: 1 1 340px;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-form h2 {
+    font-size: 1.6rem;
+    margin: 0 0 20px;
+}
+
+.editor-form label {
+    font-size: 0.9rem;
+    margin: 14px 0 6px;
+}
+
+.editor-form input[type="text"],
+.editor-form input[type="url"],
+.editor-form textarea {
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border: 1px solid #111;
+    border-radius: 8px;
+}
+
+.editor-form textarea {
+    resize: vertical;
+}
+
+.editor-form [aria-invalid="true"] {
+    border-color: #b00020;
+    outline: 1px solid #b00020;
+}
+
+.editor-form fieldset {
+    display: flex;
+    flex-direction: column;
+    margin: 18px 0 0;
+    padding: 4px 16px 16px;
+    border: 1px solid #111;
+    border-radius: 10px;
+}
+
+.editor-form legend {
+    padding: 0 6px;
+    font-size: 0.9rem;
+}
+
+.editor-hint {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.editor-error {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: #b00020;
+}
+
+.editor-error:empty {
+    display: none;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+/* Matches the site's pill buttons; uses <button>, so .buttons a styles don't apply. */
+.editor-button {
+    font: inherit;
+    font-size: 0.85rem;
+    color: #111;
+    background-color: #fff;
+    border: 1px solid #111;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.editor-button:hover:not(:disabled),
+.editor-button-primary {
+    background-color: #111;
+    color: #fff;
+}
+
+.editor-button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.editor-form #remove-image {
+    align-self: flex-start;
+    margin-top: 10px;
+}
+
+.editor-preview {
+    flex: 0 1 760px;
+    min-width: 0;
+}
+
+.editor-preview h2,
+.editor-drafts > h2 {
+    font-size: 1.6rem;
+    margin: 0 0 20px;
+}
+
+/* Dashed frame marks where editor previews start and end. */
+.editor-card-host {
+    border: 1px dashed #999;
+    border-radius: 12px;
+    padding: 40px 0 0;
+}
+
+.editor-drafts {
+    margin-top: 80px;
+}
+
+.editor-drafts .editor-card-host > h2 {
+    margin-left: 40px;
+}
+
+.editor-drafts #drafts-empty {
+    margin: 0 40px 40px;
+}
+
+.editor-draft {
+    border-top: 1px dashed #ccc;
+    padding-top: 16px;
+}
+
+.editor-draft-editing {
+    background-color: #fffbe6;
+}
+
+.editor-draft-toolbar {
+    display: flex;
+    gap: 10px;
+    margin: 0 0 30px 40px;
+}

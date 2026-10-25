@@ -167,6 +167,15 @@ body {
     border-radius: 10px;
     background-color: white;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Fill the preview box without stretching; overflow above clips to the rounded corners */
+.project-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .project-tags {
