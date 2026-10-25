@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Reenie+Beanie&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; width: 960px; height: 660px; overflow: hidden; font-family: Arimo, sans-serif; background: #3b2a20; }
+.sign { position: absolute; left: 60px; top: 40px; padding: 14px 30px; background: #c98b4f; border: 5px solid #5a3a22; border-radius: 10px;
+  font-family: "Reenie Beanie"; font-size: 56px; color: #2b1a10; transform: rotate(-2deg); }
+.book { position: absolute; left: 60px; top: 150px; width: 840px; height: 440px; background: #fbf3df; border-radius: 8px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.4); padding: 26px 34px; box-sizing: border-box; }
+table { width: 100%; border-collapse: collapse; font-size: 22px; color: #2b1a10; }
+th { text-align: left; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: #8a6a4a; padding-bottom: 10px; border-bottom: 2px solid #8a6a4a; }
+td { padding: 8px 0; border-bottom: 1px solid #e3d3b3; }
+td.n, th.n { text-align: right; width: 120px; }
+.credit td:nth-child(2) { padding-left: 40px; }
+.total td { border-bottom: none; font-weight: 700; padding-top: 16px; }
+.ok { position: absolute; right: 40px; bottom: 6px; font-family: "Reenie Beanie"; font-size: 40px; color: #1d6b32; transform: rotate(-4deg); }
+.coin { position: absolute; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe38a, #d9a520 70%); border: 3px solid #a87a10; }
+</style></head>
+<body>
+<div class="sign">Ledger Tavern</div>
+<div class="coin" style="left:820px; top:50px"></div><div class="coin" style="left:860px; top:80px"></div><div class="coin" style="left:790px; top:90px"></div>
+<div class="book">
+<table>
+<tr><th>Day</th><th>Account</th><th class="n">Debit</th><th class="n">Credit</th></tr>
+<tr><td>1</td><td>Cash</td><td class="n">12</td><td class="n"></td></tr>
+<tr class="credit"><td></td><td>Ale Sales</td><td class="n"></td><td class="n">12</td></tr>
+<tr><td>2</td><td>Barley Inventory</td><td class="n">30</td><td class="n"></td></tr>
+<tr class="credit"><td></td><td>Cash</td><td class="n"></td><td class="n">30</td></tr>
+<tr><td>3</td><td>Cash</td><td class="n">50</td><td class="n"></td></tr>
+<tr class="credit"><td></td><td>Loan from the Guild</td><td class="n"></td><td class="n">50</td></tr>
+<tr class="total"><td></td><td>Totals</td><td class="n">92</td><td class="n">92</td></tr>
+</table>
+<div class="ok">balanced! +1 recipe</div>
+</div>
+</body></html>

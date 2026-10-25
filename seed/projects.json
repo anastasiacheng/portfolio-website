@@ -1,0 +1,24 @@
+[
+    {
+        "id": "polaroid-booth",
+        "title": "Polaroid Booth",
+        "description": "A browser photobooth that turns webcam snapshots into polaroid prints with film filters and handwritten captions, built in vanilla JavaScript with the Canvas API. I'm building it step by step with an AI coding assistant and keeping a dev log of every prompt, code review, and bug I caught.",
+        "tags": ["JavaScript", "Canvas API", "Webcam API", "AI-Assisted Development"],
+        "imagePath": "polaroid-booth.png",
+        "imageAlt": "Illustration of a photobooth screen next to three polaroid prints captioned take one, vintage, and b & w",
+        "docsUrl": "",
+        "siteUrl": "",
+        "hidden": false
+    },
+    {
+        "id": "ledger-tavern",
+        "title": "Ledger Tavern",
+        "description": "A cozy management game where you run a fantasy tavern and every sale, purchase, and loan is a real double-entry journal entry. Keep your books balanced to unlock new recipes, and watch the balance sheet and income statement change as you play.",
+        "tags": ["Game Design", "Accounting", "JavaScript", "Double-Entry Bookkeeping"],
+        "imagePath": "ledger-tavern.png",
+        "imageAlt": "Illustration of a tavern ledger with balanced debit and credit columns and a note reading balanced, plus one recipe",
+        "docsUrl": "",
+        "siteUrl": "",
+        "hidden": false
+    }
+]

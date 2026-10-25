@@ -1,0 +1,16 @@
+# Imported by /etc/caddy/Caddyfile. /admin goes to the backend; everything else is static.
+anastasiacheng.com, www.anastasiacheng.com {
+	encode gzip
+
+	@admin path /admin /admin/*
+	handle @admin {
+		reverse_proxy 127.0.0.1:8091
+	}
+
+	handle {
+		root * /var/www/mywebsite
+		file_server {
+			hide .git .gitignore
+		}
+	}
+}

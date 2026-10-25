@@ -1,0 +1,30 @@
+[Unit]
+Description=Portfolio admin backend
+After=network.target
+
+[Service]
+User=portfolio
+Group=portfolio
+WorkingDirectory=/opt/portfolio
+EnvironmentFile=/etc/portfolio-admin.env
+ExecStart=/usr/bin/python3 -u -m server.app
+Restart=on-failure
+StateDirectory=portfolio
+StateDirectoryMode=0700
+UMask=0022
+
+# Can write only its state and the public folder; can't gain privileges.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/www/mywebsite
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target
