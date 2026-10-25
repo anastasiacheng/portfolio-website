@@ -69,4 +69,5 @@ if ! cmp -s deploy/portfolio.caddy /etc/caddy/portfolio.caddy; then
 fi
 
 echo "== Smoke check"
-curl -fsS -o /dev/null http://127.0.0.1:8091/admin/login && echo "Admin backend is up."
+# Retries because the service may still be starting after the restart above.
+curl -fsS -o /dev/null --retry 10 --retry-connrefused http://127.0.0.1:8091/admin/login && echo "Admin backend is up."

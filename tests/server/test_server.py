@@ -1,5 +1,6 @@
 import http.client
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -49,6 +50,10 @@ class RenderTests(unittest.TestCase):
     def test_resume_version_is_replaced(self):
         self.assertEqual(render.parse_resume_version(TEMPLATE), 2)
         self.assertIn("AnastasiaChengResume.pdf?v=7", render.render_page(TEMPLATE, [], 7))
+
+    def test_stylesheet_link_gets_a_version(self):
+        self.assertIn('href="style.css?v=abc123"', render.render_page(TEMPLATE, [], style_version="abc123"))
+        self.assertIn('href="style.css"', render.render_page(TEMPLATE, []))
 
     def test_template_needs_markers(self):
         with self.assertRaises(ValueError):
@@ -140,6 +145,15 @@ class PortfolioTests(unittest.TestCase):
         self.assertTrue((self.tmp / "site/assets/projects" / image).is_file())
         view = self.p.restore_previous(view["revision"])
         self.assertIn("<h3>Ledger 2</h3>", self.index(), "restoring twice swaps back")
+
+    def test_stylesheet_version_follows_its_content(self):
+        css = self.tmp / "site/style.css"
+        css.write_text("a{}")
+        self.p.render_site()
+        first = re.search(r'style\.css\?v=(\w+)', self.index()).group(1)
+        css.write_text("b{}")
+        self.p.render_site()
+        self.assertNotEqual(re.search(r'style\.css\?v=(\w+)', self.index()).group(1), first)
 
     def test_stale_revision_is_rejected(self):
         self.p.save_drafts(0, [project()])

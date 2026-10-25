@@ -5,6 +5,7 @@ import re
 START = "<!-- projects:start -->"
 END = "<!-- projects:end -->"
 RESUME_RE = re.compile(r"(AnastasiaChengResume\.pdf\?v=)(\d+)")
+STYLE_RE = re.compile(r'href="style\.css(\?v=[^"]*)?"')
 COMING_SOON = '<p class="coming-soon">Projects coming soon&hellip;</p>'
 
 
@@ -46,7 +47,7 @@ def parse_resume_version(template):
     return int(match.group(2)) if match else None
 
 
-def render_page(template, projects, resume_version=None):
+def render_page(template, projects, resume_version=None, style_version=None):
     if template.count(START) != 1 or template.count(END) != 1:
         raise ValueError("Template needs exactly one projects:start and one projects:end marker")
     head, rest = template.split(START)
@@ -64,4 +65,7 @@ def render_page(template, projects, resume_version=None):
     page = f"{head}{START}\n{inner}{indent}{END}{tail}"
     if resume_version is not None:
         page = RESUME_RE.sub(lambda m: f"{m.group(1)}{resume_version}", page)
+    if style_version:
+        # A new ?v= whenever style.css changes, so browsers can't keep using an old cached copy.
+        page = STYLE_RE.sub(f'href="style.css?v={style_version}"', page)
     return page

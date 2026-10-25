@@ -1,4 +1,5 @@
 """What the admin can do: save drafts, upload images and the resume, publish, roll back."""
+import hashlib
 import shutil
 import time
 from datetime import datetime, timezone
@@ -121,7 +122,9 @@ class Portfolio:
         return self.template_path.read_text()
 
     def _write_site(self, state):
-        page = render.render_page(self._template(), state["published"], state["resumeVersion"])
+        css = self.site / "style.css"
+        style_version = hashlib.sha256(css.read_bytes()).hexdigest()[:10] if css.exists() else None
+        page = render.render_page(self._template(), state["published"], state["resumeVersion"], style_version)
         project_dir = self.site / "assets" / "projects"
         project_dir.mkdir(parents=True, exist_ok=True)
         needed = {p["image"]["file"] for p in state["published"] if p["image"]}
