@@ -255,6 +255,22 @@ test("the home page has the admin link", async () => {
     assert.match(await publicPage(), /<a class="admin-link" href="\/admin\/"/);
 });
 
+test("the home page fits common phone widths with nothing cut off on either side", async () => {
+    for (const width of [320, 360, 412]) {
+        const phone = await browser.newPage({ viewport: { width, height: 900 }, isMobile: true, hasTouch: true });
+        await phone.goto(`${base}/`, { waitUntil: "networkidle" });
+        const offscreen = await phone.evaluate(() => {
+            const vw = document.documentElement.clientWidth;
+            return [...document.querySelectorAll("body *")]
+                .map((el) => [el, el.getBoundingClientRect()])
+                .filter(([, r]) => r.width && (r.left < -0.5 || r.right > vw + 0.5))
+                .map(([el, r]) => `${el.tagName.toLowerCase()}.${el.className} ${Math.round(r.left)}..${Math.round(r.right)}`);
+        });
+        await phone.close();
+        assert.deepEqual(offscreen, [], `at ${width}px`);
+    }
+});
+
 test("logging out ends the session", async () => {
     await page.click("text=Log out");
     assert.match(page.url(), /\/admin\/login$/);

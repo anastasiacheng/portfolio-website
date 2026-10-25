@@ -280,6 +280,13 @@ body {
     .projects { width: 100%; }
     .project { flex-wrap: wrap; }
     .project-text { left: 0; }
-    .project-preview { right: 0; }
+    .project-preview { right: 0; width: 100%; max-width: 320px; height: auto; aspect-ratio: 32 / 22; }
     .note { box-sizing: border-box; }
+
+    /* Hero text: fit the screen instead of fixed widths, no negative margin past the edge */
+    .intro-text { width: 100%; margin-top: 0; }
+    .hello { margin-left: 0; }
+    .name { font-size: min(3rem, 11vw); margin-bottom: 40px; }
+    .description { width: auto; margin-left: 0; }
+    .buttons { margin-left: 0; }
 }
