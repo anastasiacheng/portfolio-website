@@ -9,6 +9,10 @@ anastasiacheng.com, www.anastasiacheng.com {
 
 	handle {
 		root * /var/www/mywebsite
+		# Browsers must re-check the page and resume on every visit (unchanged files get a
+		# quick 304), so a publish or resume upload shows up without a hard refresh.
+		@revalidate path / /index.html *.pdf
+		header @revalidate Cache-Control "no-cache"
 		file_server {
 			hide .git .gitignore
 		}
